@@ -1,0 +1,30 @@
+name: Compile Mod
+
+on:
+  push:
+    branches: [main] # The branch compilation/release runs on.
+
+env:
+  filename: "release" # Filename of the zip that gets created as a release.
+  release_tag: "latest" # Tag to release under.
+  prerelease: false # Is this a prerelease?
+  title: "Release" # Title of the GitHub Release.
+
+jobs:
+  create_release:
+    name: Create GitHub Release
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Compile Mod
+        shell: cmd
+        run: cd tools && call compile.bat ${{ env.filename }}.zip
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ env.release_tag }}"
+          prerelease: "${{ env.prerelease }}"
+          title: "${{ env.title }}"
+          files: "tools/${{ env.filename }}.zip"
