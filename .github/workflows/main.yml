@@ -1,4 +1,4 @@
-name: Compile Mod on Push
+name: Compile Mod
 on:
   push:
     branches: [ main ]
@@ -11,7 +11,13 @@ jobs:
 
       - name: Compile Mod
         shell: cmd
-        run: cd tools && call compile.bat
+        # Arguments:
+          # onefile = Compile all the GSC inside of src\gsc into one GSC file (doesn't support folders)
+          # multifile = Compile files separately (supports folders)
+          # release.gsc/.zip = File Name to have under your GitHub Release.
+              # Note that if you change this, you should change the very last line in this file to match.
+        # By Default, we compile everything on it's own and ZIP it. If you want to change this, simply replace "multifile release.zip" with "onefile release.gsc"
+        run: cd tools && call compile.bat multifile release.zip
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -20,4 +26,4 @@ jobs:
           prerelease: false
           title: "Release"
           files: |
-            tools/release.gsc
+            tools/release.zip

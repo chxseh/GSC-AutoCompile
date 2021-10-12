@@ -1,1 +1,2 @@
-tools/release.gsc
+tools/*.gsc
+tools/*.zip
