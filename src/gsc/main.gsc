@@ -18,6 +18,6 @@ onplayerspawned()
     for(;;)
     {
         self waittill("spawned_player");
-        self iprintlnbold("^2Hello, World!");
+        //self iprintlnbold("^2Hello, World!");
     }
 }
