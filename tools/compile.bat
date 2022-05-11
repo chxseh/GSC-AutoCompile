@@ -33,9 +33,9 @@ gsc-tool.exe comp t6 uncompiled.gsc
 :: Delete the raw GSC
 del /f uncompiled.gsc
 :: Copy compiled GSC to root
-type %COMPILEDDIR%\uncompiled.gcs >> uncompiled.gcs
+type %COMPILEDDIR%\uncompiled.gsc >> uncompiled.gsc
 :: Delete compiler-generated "compiled" directory after use
-rd compiled /s /f /q
+rd compiled /s /q
 :: Rename GSC to specified filename
 ren uncompiled.gsc "%FileName%"
 
@@ -76,7 +76,7 @@ for /F %%x in ('dir /B/D/A:-D %COMPILEDDIR%') do (
 )
 
 :: Delete compiler-generated "compiled" directory after use
-rd compiled /s /f /q
+rd compiled /s /q
 
 :: ZIP all the gsc together
 start /wait 7za a %FileName% *.gsc -r
