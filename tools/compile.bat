@@ -11,6 +11,7 @@ for /f "delims=" %%d in ('dir /s /b /ad ^| sort /r') do rd "%%d"  > nul 2>&1
 set "crt_dir=%~dp0"
 for %%I in ("%crt_dir%\..") do set "root=%%~fI"
 set "SEARCHPATH=%root%\src\gsc"
+set "COMPILEDDIR=%root%\tools\compiled\t6"
 
 IF /i "%1"=="onefile" goto onefile
 IF /i "%1"=="multifile" goto multifile
@@ -28,10 +29,16 @@ for /F %%x in ('dir /B/D %SEARCHPATH%') do (
   type %SEARCHPATH%\%%x >> "uncompiled.gsc"
 )
 :: Compile the raw GSC into a single .gsc file.
-Compiler.exe uncompiled.gsc
-:: Delete the raw GSC + rename the compiled .gsc file.
+gsc-tool.exe comp t6 uncompiled.gsc
+:: Delete the raw GSC
 del /f uncompiled.gsc
-ren "uncompiled-compiled.gsc" "%FileName%"
+:: Copy compiled GSC to root
+type %COMPILEDDIR%\uncompiled.gcs >> uncompiled.gcs
+:: Delete compiler-generated "compiled" directory after use
+rd compiled /s /f /q
+:: Rename GSC to specified filename
+ren uncompiled.gsc "%FileName%"
+
 echo - Compiled GSC.
 EXIT /B 0
 
@@ -42,11 +49,11 @@ for /F %%x in ('dir /B/D/A:-D %SEARCHPATH%') do (
   type %SEARCHPATH%\%%x >> %%x
 )
 :: Compile the raw GSC.
-for %%I in (%crt_dir%\*.gsc) DO (
-    Compiler.exe %%I
-    del /F %%I
+for %%I in (%crt_dir%/*.gsc) DO (
+    echo %%~nxI
+    gsc-tool.exe comp t6 %%~nxI
+    del /F %%~nxI
 )
-start /wait PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {get-childitem *.gsc | foreach { rename-item $_ $_.Name.Replace(\"-compiled\", \"\") }}"
 
 :: Recur copy directories from scr\gsc to current dir.
 for /F %%x in ('dir /B/D/A:D %SEARCHPATH%') do (
@@ -57,12 +64,21 @@ for /F %%x in ('dir /B/D/A:D %SEARCHPATH%') do (
 :: For any subfolders inside %crt_dir%, run compiler
 for /f "tokens=*" %%G in ('dir /b /s /a:d "%crt_dir%*"') do (
     for %%I in (%%G\*.gsc) DO (
-    start /wait /D %%G %crt_dir%\Compiler.exe %%I
+    start /wait /D %%G %crt_dir%\gsc-tool.exe comp t6 %%I
   )
-  start /wait /D %%G PowerShell -NoProfile -ExecutionPolicy Bypass -Command "& {get-childitem *.gsc | foreach { Move-Item -force $_ $_.Name.Replace(\"-compiled\", \"\") }}"
 )
 
 echo - Compiled GSC.
+
+:: Copy GSC to root to ZIP
+for /F %%x in ('dir /B/D/A:-D %COMPILEDDIR%') do (
+  type %COMPILEDDIR%\%%x >> %%x
+)
+
+:: Delete compiler-generated "compiled" directory after use
+rd compiled /s /f /q
+
+:: ZIP all the gsc together
 start /wait 7za a %FileName% *.gsc -r
 echo - ZIPd GSC.
 EXIT /B 0
